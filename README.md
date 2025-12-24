@@ -1,6 +1,6 @@
 Resume Search & Chat (FastAPI + React + FAISS)
 
-An end-to-end AI-powered Resume Search & Chat System that allows uploading resumes (PDF/DOCX), indexing them using FAISS vector search, and performing semantic queries via a chat-like UI.
+An end-to-end AI-powered Resume Search & Chat System that allows uploading documents (PDF/DOCX), indexing them using FAISS vector search, and performing semantic queries via a chat-like UI.
 
 # Features:
 
