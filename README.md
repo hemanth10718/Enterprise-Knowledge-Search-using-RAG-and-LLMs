@@ -6,7 +6,7 @@ An end-to-end AI-powered Resume Search & Chat System that allows uploading docum
 
 1. Resume Upload: Upload .pdf or .docx resumes.
 
-2.Text Cleaning: Extract text from resumes using PyPDF2/docx.
+2. Text Cleaning: Extract text from resumes using PyPDF2/docx.
 
 3. Vector Indexing (FAISS): Store embeddings for semantic search.
 
