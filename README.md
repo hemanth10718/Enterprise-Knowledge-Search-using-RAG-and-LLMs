@@ -106,7 +106,7 @@ GET /resumes/{resume_id}
 Fetch resume content by ID
 
 # Author
-Developed by Hemanth R, AI/ML engineer
+Developed by Hemanth R
 
 ## License
 This project is licensed under the **MIT License**.  
