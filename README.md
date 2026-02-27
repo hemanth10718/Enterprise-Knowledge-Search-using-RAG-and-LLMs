@@ -16,7 +16,7 @@ An end-to-end AI-powered Resume Search & Chat System that allows uploading resum
 
 6. Chat UI: Search resumes in a chat-like interface with query memory.
 
-7. SQLite Metadata Store: Keep track of resumes, filenames, and timestamps.
+7. PostgreSQL Metadata Store: Keep track of resumes, filenames, and timestamps.
 
 8. React Frontend: Simple UI for uploading, searching, and chatting.
 
