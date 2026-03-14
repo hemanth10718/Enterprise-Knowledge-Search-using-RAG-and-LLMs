@@ -25,7 +25,7 @@ An end-to-end AI-powered Resume Search & Chat System that allows uploading resum
 10. End-to-End Fullstack: Combines FastAPI backend with React frontend.
 
 
-      # Architecture
+# Architecture
 [Resume Upload (.pdf/.docx)]
         ↓
   [FastAPI Backend]
