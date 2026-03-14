@@ -14,13 +14,15 @@ An end-to-end AI-powered Resume Search & Chat System that allows uploading resum
 
 5. Citation Snippets: Show snippets of where the query matched inside resumes.
 
-6. Chat UI: Search resumes in a chat-like interface with query memory.
+6. Hugging Face Transformers: Trained and deployed pre-trained machine learning models.
 
-7. PostgreSQL Metadata Store: Keep track of resumes, filenames, and timestamps.
+7. Chat UI: Search resumes in a chat-like interface with query memory.
 
-8. React Frontend: Simple UI for uploading, searching, and chatting.
+8. PostgreSQL Metadata Store: Keep track of resumes, filenames, and timestamps.
 
-9. End-to-End Fullstack: Combines FastAPI backend with React frontend.
+9. React Frontend: Simple UI for uploading, searching, and chatting.
+
+10. End-to-End Fullstack: Combines FastAPI backend with React frontend.
 
 
       # Architecture
@@ -50,6 +52,9 @@ Frontend (React)
 ->Plain CSS (custom styling)
 ->Fetch API for backend calls
 
+# Python Version
+use python 3.10 version (py -3.10 --version) Python 3.10.11
+
 # Installation & Setup
 
 Backend (FastAPI)
@@ -57,6 +62,9 @@ cd fastapi-app
 python -m venv .venv
 .venv\Scripts\activate   # Windows
 source .venv/bin/activate  # Linux/Mac
+
+pip install --upgrade pip wheel setuptools (creating new virtual environment)
+pip install "transformers==4.41.2" "sentence-transformers==2.7.0" faiss-cpu fastapi uvicorn
 
 pip install -r requirements.txt
 
@@ -75,6 +83,27 @@ npm start
 
 Frontend will be live at:
  http://localhost:3000
+
+# SQLite Commands
+
+sqlite3 resumes.db 
+.tables
+.schema resumes
+SELECT id, filename, uploaded_at FROM resumes LIMIT 5;
+
+SELECT id, filename, substr(content, 1, 100) as snippet
+   ...> FROM resumes
+   ...> WHERE content LIKE '%python%'
+   ...> LIMIT 3;
+
+SELECT COUNT(*) FROM resumes;
+
+Sentence Transformers calls hugging face transformers using Tensorflow + keras
+
+# Embeddings
+
+Embeddings using all-MiniLM-L6-v2
+FAISS index and metadata
 
  # API Endpoints
 Upload Resume
