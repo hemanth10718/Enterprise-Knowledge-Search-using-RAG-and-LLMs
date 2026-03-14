@@ -40,7 +40,7 @@ def add_resumes(embeddings, meta_info):
 
     # Save
     save_index(index, meta)
-    print("✅ Added to FAISS:", len(meta_info), "resumes")
+    print("Added to FAISS:", len(meta_info), "resumes")
 
 # --- Search resumes ---
 def search_resume(query_vector, k=3):
