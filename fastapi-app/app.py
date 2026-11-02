@@ -22,6 +22,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
+# LangGraph flow (retrieve -> grade -> answer / rewrite / not found)
+from rag_graph import build_ask_graph
 
 # -------------------------
 # Config
@@ -34,7 +36,7 @@ if not DATABASE_URL:
 # Keep the model name in .env so a retired model does not force a code change
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
-app = FastAPI(title="Resume RAG - PostgreSQL + FAISS + LangChain")
+app = FastAPI(title="Resume RAG - PostgreSQL + FAISS + LangChain + LangGraph")
 
 # Allow React (localhost:3000) to talk to FastAPI
 app.add_middleware(
@@ -249,22 +251,32 @@ RAG_PROMPT = ChatPromptTemplate.from_messages(
     ]
 )
 
+_llm = None
 _rag_chain = None
 
 
-def get_rag_chain():
-    """Create the chain on first use so the server can start without an LLM key."""
-    global _rag_chain
-    if _rag_chain is None:
+def get_llm():
+    """Create the chat model on first use so the server can start without an LLM key."""
+    global _llm
+    if _llm is None:
         if not os.getenv("GROQ_API_KEY"):
             raise HTTPException(
                 status_code=503,
                 detail="GROQ_API_KEY is not set. Add it to the .env file and restart.",
             )
-        llm = ChatGroq(model=GROQ_MODEL, temperature=0)
-        _rag_chain = RAG_PROMPT | llm | StrOutputParser()
+        _llm = ChatGroq(model=GROQ_MODEL, temperature=0)
+    return _llm
+
+
+def get_rag_chain():
+    global _rag_chain
+    if _rag_chain is None:
+        _rag_chain = RAG_PROMPT | get_llm() | StrOutputParser()
     return _rag_chain
 
+
+# LangGraph: retrieve -> grade -> (generate | rewrite and retry | not found)
+ask_graph = build_ask_graph(retrieve_chunks, get_llm, get_rag_chain)
 
 # -------------------------
 # Startup
@@ -394,6 +406,50 @@ def ask(question: str, top_k: int = 5):
                 "snippet": c["text"][:200],
             }
             for c, s in hits
+        ],
+    }
+
+@app.post("/ask_graph/")
+def ask_with_graph(question: str, top_k: int = 3):
+    """Same question answering as /ask/, but run as a LangGraph flow that checks the
+    retrieved chunks and retries with a rewritten query when they are not relevant."""
+    question = question.strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Question required.")
+    top_k = max(1, min(top_k, 10))
+
+    try:
+        result = ask_graph.invoke(
+            {
+                "question": question,
+                "search_query": question,
+                "top_k": top_k,
+                "hits": [],
+                "relevant": False,
+                "attempts": 0,
+                "answer": "",
+                "trace": [],
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Graph run failed: {e}")
+
+    return {
+        "question": question,
+        "answer": result["answer"],
+        "search_query_used": result["search_query"],
+        "attempts": result["attempts"],
+        "trace": result["trace"],  # the steps the graph took, in order
+        "sources": [
+            {
+                "resume_id": h["resume_id"],
+                "filename": h["filename"],
+                "score": h["score"],
+                "snippet": h["text"][:200],
+            }
+            for h in result["hits"][:10]
         ],
     }
 
